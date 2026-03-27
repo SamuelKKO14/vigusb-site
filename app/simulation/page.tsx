@@ -1,5 +1,6 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { MARQUES, MODELES, PANNES, MAGASINS, generateTicketId } from '@/lib/data'
@@ -220,10 +221,16 @@ function BrandCarousel({ onSelect }: { onSelect: (marque: string) => void }) {
 }
 
 // ── Page principale ────────────────────────────────────────────────────────
-export default function SimulationPage() {
-  const [step, setStep] = useState<Step>(1)
+function SimulationContent() {
+  const searchParams = useSearchParams()
+  const initMarque = searchParams.get('marque') || ''
+  const initModele = searchParams.get('modele') || ''
+  const initMagasin = Number(searchParams.get('magasin')) || null
+  const initialStep: Step = initMarque && initModele ? 3 : 1
+
+  const [step, setStep] = useState<Step>(initialStep)
   const [form, setForm] = useState<FormData>({
-    marque: '', modele: '', pannes: [], magasinId: null,
+    marque: initMarque, modele: initModele, pannes: [], magasinId: initMagasin,
     prenom: '', nom: '', telephone: '', email: '', ticketId: '',
   })
   const [loading, setLoading] = useState(false)
@@ -527,5 +534,17 @@ export default function SimulationPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SimulationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-lg font-bold" style={{ color: '#7B2D8B' }}>Chargement…</div>
+      </div>
+    }>
+      <SimulationContent />
+    </Suspense>
   )
 }

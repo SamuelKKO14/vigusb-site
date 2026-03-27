@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import HeroSearch from '@/components/HeroSearch'
 import { MAGASINS } from '@/lib/data'
 
 const TEMOIGNAGES = [
@@ -15,33 +16,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       <Header />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden py-20 px-4" style={{ background: 'linear-gradient(135deg, #7B2D8B 0%, #5a1f67 50%, #3d1347 100%)' }}>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-[#8DC63F] blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-white blur-3xl" />
-        </div>
-        <div className="relative max-w-4xl mx-auto text-center text-white">
-          <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 text-sm font-medium mb-6 backdrop-blur-sm">
-            <span className="text-[#8DC63F]">●</span> 14 magasins · Garantie 24 mois · Certifié QualiRepar
-          </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight mb-6">
-            Votre téléphone<br />
-            <span style={{ color: '#8DC63F' }}>mérite le meilleur</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10">
-            Réparation express, téléphones reconditionnés de qualité, accessoires premium. Près de chez vous, dans 14 villes de France.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/simulation" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#7B2D8B] font-bold rounded-2xl text-lg hover:bg-gray-50 transition-all hover:scale-105 active:scale-95 shadow-xl">
-              🔧 Simuler une réparation
-            </Link>
-            <Link href="/telephones" className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold rounded-2xl text-lg hover:bg-white/10 transition-all border-2 border-white/40 backdrop-blur-sm">
-              📱 Voir nos téléphones
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroSearch />
 
       {/* Chiffres clés */}
       <section className="py-16 px-4 bg-[#F8F8F8]">
