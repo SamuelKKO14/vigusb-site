@@ -16,19 +16,19 @@ export const MAGASINS = [
 ]
 
 export const MARQUES = [
-  { id: 'apple', nom: 'Apple', emoji: '🍎' },
-  { id: 'samsung', nom: 'Samsung', emoji: '📱' },
-  { id: 'xiaomi', nom: 'Xiaomi', emoji: '📱' },
-  { id: 'huawei', nom: 'Huawei', emoji: '📱' },
-  { id: 'google', nom: 'Google Pixel', emoji: '📱' },
-  { id: 'oneplus', nom: 'OnePlus', emoji: '📱' },
-  { id: 'oppo', nom: 'Oppo', emoji: '📱' },
-  { id: 'sony', nom: 'Sony', emoji: '📱' },
-  { id: 'vivo', nom: 'Vivo', emoji: '📱' },
-  { id: 'realme', nom: 'Realme', emoji: '📱' },
-  { id: 'honor', nom: 'Honor', emoji: '📱' },
-  { id: 'nintendo', nom: 'Nintendo', emoji: '🎮' },
-  { id: 'xbox', nom: 'Xbox', emoji: '🎮' },
+  { id: 'apple', nom: 'Apple', emoji: '🍎', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg' },
+  { id: 'samsung', nom: 'Samsung', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg' },
+  { id: 'xiaomi', nom: 'Xiaomi', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg' },
+  { id: 'huawei', nom: 'Huawei', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e5/Huawei_Standard_logo.svg' },
+  { id: 'google', nom: 'Google Pixel', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' },
+  { id: 'oneplus', nom: 'OnePlus', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/83/OnePlus_logo.svg' },
+  { id: 'oppo', nom: 'Oppo', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a2/OPPO_LOGO_2019.svg' },
+  { id: 'sony', nom: 'Sony', emoji: '📱', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg' },
+  { id: 'vivo', nom: 'Vivo', emoji: '📱', logoUrl: '' },
+  { id: 'realme', nom: 'Realme', emoji: '📱', logoUrl: '' },
+  { id: 'honor', nom: 'Honor', emoji: '📱', logoUrl: '' },
+  { id: 'nintendo', nom: 'Nintendo', emoji: '🎮', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg' },
+  { id: 'xbox', nom: 'Xbox', emoji: '🎮', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg' },
 ]
 
 export const MODELES: Record<string, string[]> = {

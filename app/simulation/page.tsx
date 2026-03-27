@@ -91,8 +91,20 @@ export default function SimulationPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {MARQUES.map(m => (
                 <button key={m.id} onClick={() => { setForm(f => ({ ...f, marque: m.nom, modele: '' })); setStep(2) }}
-                  className="bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-[#7B2D8B] hover:shadow-md transition-all text-left group active:scale-95">
-                  <div className="text-3xl mb-2">{m.emoji}</div>
+                  className="bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-[#7B2D8B] hover:shadow-md transition-all text-center group active:scale-95 flex flex-col items-center gap-3">
+                  <div className="h-10 flex items-center justify-center">
+                    {m.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.logoUrl}
+                        alt={m.nom}
+                        className="h-8 w-auto max-w-[80px] object-contain"
+                        style={{ filter: 'brightness(0)' }}
+                      />
+                    ) : (
+                      <span className="text-3xl">{m.emoji}</span>
+                    )}
+                  </div>
                   <div className="font-semibold text-sm text-gray-700 group-hover:text-[#7B2D8B]">{m.nom}</div>
                 </button>
               ))}
