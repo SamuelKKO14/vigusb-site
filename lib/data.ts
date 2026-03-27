@@ -29,6 +29,7 @@ export const MARQUES = [
   { id: 'honor', nom: 'Honor', emoji: '📱', logoUrl: '' },
   { id: 'nintendo', nom: 'Nintendo', emoji: '🎮', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg' },
   { id: 'xbox', nom: 'Xbox', emoji: '🎮', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg' },
+  { id: 'playstation', nom: 'PlayStation', emoji: '🎮', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg' },
 ]
 
 export const MODELES: Record<string, string[]> = {
