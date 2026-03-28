@@ -9,6 +9,7 @@ const REPARATION_ITEMS = [
   { label: 'Tarifs Samsung', href: '/reparation#samsung' },
   { label: 'Tarifs Xiaomi', href: '/reparation#xiaomi' },
   { label: 'Tarifs Huawei', href: '/reparation#huawei' },
+  { label: '📦 Réparation à distance', href: '/reparation-distance' },
 ]
 
 function SimulationModal({ onClose }: { onClose: () => void }) {

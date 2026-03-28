@@ -391,6 +391,15 @@ export default function PageSEOLocale({
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={4} className="px-5 py-3 text-center" style={{ background: '#F0FAE6' }}>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full" style={{ background: '#8DC63F22', color: '#4a7c1f' }}>
+                          🎁 Bonus QualiRepar −25€ applicable sur écran, batterie et connecteur
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             ) : null}

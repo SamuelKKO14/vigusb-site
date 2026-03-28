@@ -1,10 +1,13 @@
 'use client'
 import { useState, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { MARQUES, MODELES, PANNES, MAGASINS, generateTicketId } from '@/lib/data'
 import { createClient } from '@/lib/supabase/client'
+
+const BONUS_QUALIREPAR = 25
+const ELIGIBLE_PANNES = ['ecran', 'batterie', 'charge', 'vitre_arriere', 'camera_avant', 'camera_arriere']
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6
 
@@ -223,6 +226,7 @@ function BrandCarousel({ onSelect }: { onSelect: (marque: string) => void }) {
 // ── Page principale ────────────────────────────────────────────────────────
 function SimulationContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const initMarque = searchParams.get('marque') || ''
   const initModele = searchParams.get('modele') || ''
   const initMagasin = Number(searchParams.get('magasin')) || null
@@ -237,7 +241,9 @@ function SimulationContent() {
 
   const magasinSelectionne = MAGASINS.find(m => m.id === form.magasinId)
   const pannesSelectionnees = PANNES.filter(p => form.pannes.includes(p.id))
-  const prixTotal = pannesSelectionnees.reduce((sum, p) => sum + p.prixBase, 0)
+  const prixBrut = pannesSelectionnees.reduce((sum, p) => sum + p.prixBase, 0)
+  const bonusApplicable = form.pannes.some(id => ELIGIBLE_PANNES.includes(id))
+  const prixFinal = bonusApplicable ? Math.max(0, prixBrut - BONUS_QUALIREPAR) : prixBrut
 
   async function confirmerReservation() {
     setLoading(true)
@@ -255,13 +261,14 @@ function SimulationContent() {
         modele: form.modele,
         pannes: form.pannes,
         statut: 'en_attente',
+        bonus_qualirepar: bonusApplicable ? BONUS_QUALIREPAR : 0,
+        prix_total: prixFinal,
+        prix_4x: Math.ceil(prixFinal / 4),
       })
     } catch {
       // Continue même si Supabase n'est pas configuré (démo)
     }
-    setForm(f => ({ ...f, ticketId }))
-    setStep(6)
-    setLoading(false)
+    router.push('/reservation/' + ticketId.replace('#', ''))
   }
 
   return (
@@ -366,7 +373,7 @@ function SimulationContent() {
               <div className="rounded-xl p-4 mb-4 border" style={{ background: '#7B2D8B0D', borderColor: '#7B2D8B33' }}>
                 <div className="flex justify-between text-sm font-semibold" style={{ color: '#7B2D8B' }}>
                   <span>{form.pannes.length} panne{form.pannes.length > 1 ? 's' : ''} sélectionnée{form.pannes.length > 1 ? 's' : ''}</span>
-                  {prixTotal > 0 && <span>À partir de {prixTotal}€</span>}
+                  {prixBrut > 0 && <span>À partir de {prixBrut}€</span>}
                 </div>
               </div>
             )}
@@ -426,15 +433,37 @@ function SimulationContent() {
               <h3 className="font-bold text-sm mb-3" style={{ color: '#7B2D8B' }}>Récapitulatif</h3>
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex justify-between"><span>Appareil</span><span className="font-medium">{form.marque} {form.modele}</span></div>
-                <div className="flex justify-between"><span>Pannes</span><span className="font-medium text-right max-w-[60%]">{pannesSelectionnees.map(p => p.label).join(', ')}</span></div>
                 <div className="flex justify-between"><span>Magasin</span><span className="font-medium">{magasinSelectionne?.nom}</span></div>
-                {prixTotal > 0 && (
-                  <div className="flex justify-between pt-2 border-t border-gray-100">
-                    <span className="font-bold">Estimation</span>
-                    <span className="font-bold" style={{ color: '#7B2D8B' }}>À partir de {prixTotal}€</span>
-                  </div>
-                )}
               </div>
+              {pannesSelectionnees.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                  {pannesSelectionnees.map(p => (
+                    <div key={p.id} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{p.emoji} {p.label}</span>
+                      <span className="font-medium text-gray-800">{p.prixBase > 0 ? `${p.prixBase}€` : 'Devis'}</span>
+                    </div>
+                  ))}
+                  {bonusApplicable && (
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold" style={{ color: '#8DC63F' }}>🎁 Bonus QualiRepar (aide de l&apos;État)</span>
+                      <span className="font-bold" style={{ color: '#8DC63F' }}>−{BONUS_QUALIREPAR}€</span>
+                    </div>
+                  )}
+                  {prixBrut > 0 && (
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <span className="font-black text-base">Total estimé</span>
+                        <span className="font-black text-xl" style={{ color: '#7B2D8B' }}>{prixFinal}€</span>
+                      </div>
+                      {prixFinal > 0 && (
+                        <p className="text-right text-xs text-gray-400 mt-0.5">
+                          soit {Math.ceil(prixFinal / 4)}€ × 4 fois sans frais
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
