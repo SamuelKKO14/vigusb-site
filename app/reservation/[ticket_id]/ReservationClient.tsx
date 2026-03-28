@@ -28,11 +28,13 @@ interface Reservation {
   marque: string
   modele: string
   pannes: string[]
+  pannes_prix?: Record<string, number>
   magasin_id: number
   statut: keyof typeof STATUS_CONFIG
   bonus_qualirepar: number
   prix_total: number
   file_attente: number
+  file_attente_total?: number
   numero_serie: string
   coloris: string
   prenom: string
@@ -54,11 +56,13 @@ const makeMock = (ticketId: string): Reservation => ({
   marque: 'Apple',
   modele: 'iPhone 15',
   pannes: ['ecran', 'batterie'],
+  pannes_prix: { ecran: 229, batterie: 89 },
   magasin_id: 1,
   statut: 'en_attente',
   bonus_qualirepar: BONUS_QUALIREPAR,
-  prix_total: 279,
-  file_attente: 3,
+  prix_total: 293,
+  file_attente: 7,
+  file_attente_total: 28,
   numero_serie: '',
   coloris: 'Noir',
   prenom: 'Jean',
@@ -297,7 +301,7 @@ export default function ReservationClient({ ticketId }: { ticketId: string }) {
             </h1>
             {reservation.file_attente > 0 && (
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#7B2D8B]/10 text-[#7B2D8B]">
-                File d&apos;attente {reservation.file_attente}
+                File d&apos;attente {reservation.file_attente}{reservation.file_attente_total ? `/${reservation.file_attente_total}` : ''}
               </span>
             )}
           </div>
@@ -323,15 +327,18 @@ export default function ReservationClient({ ticketId }: { ticketId: string }) {
           <h2 className="font-black text-base mb-4" style={{ color: '#7B2D8B' }}>Détail de la réparation</h2>
 
           <div className="space-y-2.5 mb-4">
-            {pannesData.map(p => (
-              <div key={p.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">
-                  <span className="mr-2">{p.emoji}</span>
-                  1× {p.label}
-                </span>
-                <span className="font-semibold text-gray-800">{p.prixBase}€</span>
-              </div>
-            ))}
+            {pannesData.map(p => {
+              const prix = reservation.pannes_prix?.[p.id] ?? p.prixBase
+              return (
+                <div key={p.id} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700">
+                    <span className="mr-2">{p.emoji}</span>
+                    1× {p.label}
+                  </span>
+                  <span className="font-semibold text-gray-800">{prix}€</span>
+                </div>
+              )
+            })}
           </div>
 
           <div className="border-t border-gray-100 pt-3 space-y-2">
