@@ -59,6 +59,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
+  // Pages vigusb-[ville] (racine)
+  const vigusbPages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
+    url: `${BASE_URL}/vigusb-${v.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
   return [
     ...staticPages,
     ...phonePages,
@@ -66,5 +74,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...repairPages,
     ...samsungPages,
     ...occasionPages,
+    ...vigusbPages,
   ]
 }

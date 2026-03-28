@@ -185,13 +185,15 @@ export default function PageSEOLocale({
   ville,
   magasin,
   pageType,
+  afterHeroSlot,
 }: {
   ville: VilleSEO
   magasin: MagasinData
   pageType: PageType
+  afterHeroSlot?: React.ReactNode
 }) {
   const cfg = CONFIG[pageType]
-  const mapsQuery = encodeURIComponent(`Vigus'B ${magasin.adresse}`)
+  const mapsQuery = encodeURIComponent(`${magasin.adresse}, ${magasin.nom}, France`)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -235,6 +237,8 @@ export default function PageSEOLocale({
             </a>
           </div>
         </section>
+
+        {afterHeroSlot}
 
         {/* ── 2. BANDE D'INFOS ────────────────────────────────────────────── */}
         <section className="py-6 px-4" style={{ background: '#F8F8F8' }}>
@@ -318,9 +322,9 @@ export default function PageSEOLocale({
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
+                allowFullScreen
                 loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=${mapsQuery}`}
+                src={`https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15`}
               />
             </div>
           </section>
