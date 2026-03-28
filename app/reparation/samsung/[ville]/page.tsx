@@ -13,9 +13,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ville: slug } = await params
   const ville = VILLES_SEO.find(v => v.slug === slug)
   if (!ville) return { title: 'Page introuvable' }
-  const title = `Téléphone Reconditionné ${ville.nom} — Vigus'B | Dès 99€, garantie 24 mois`
-  const description = `Achetez un téléphone reconditionné près de ${ville.nom}. iPhone, Samsung, Xiaomi garantis 24 mois jusqu'à -60% vs neuf. Magasin Vigus'B à ${ville.distance} de ${ville.nom}.`
-  const url = `https://www.vigusb.fr/telephone-occasion/${ville.slug}`
+  const title = `Réparation Samsung ${ville.nom} (${ville.cp}) — Vigus'B | QualiRepar`
+  const description = `Réparation Samsung à ${ville.nom} ? Vigus'B répare Galaxy S, Galaxy A, Galaxy Note au meilleur prix. Bonus QualiRepar -25€, garantie 24 mois. Magasin à ${ville.distance} de ${ville.nom}.`
+  const url = `https://www.vigusb.fr/reparation/samsung/${ville.slug}`
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, url } }
 }
 
@@ -24,5 +24,5 @@ export default async function Page({ params }: Props) {
   const ville = VILLES_SEO.find(v => v.slug === slug)
   if (!ville) notFound()
   const magasin = MAGASINS_DATA[ville.magasin_id]
-  return <PageSEOLocale ville={ville} magasin={magasin} pageType="occasion" />
+  return <PageSEOLocale ville={ville} magasin={magasin} pageType="samsung" />
 }

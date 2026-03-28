@@ -29,7 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Pages SEO locales — réparation iPhone
   const iphonePages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
-    url: `${BASE_URL}/reparation-iphone/${v.slug}`,
+    url: `${BASE_URL}/reparation/iphone/${v.slug}`,
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -37,7 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Pages SEO locales — réparation téléphone
   const repairPages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
-    url: `${BASE_URL}/reparation-telephone/${v.slug}`,
+    url: `${BASE_URL}/reparation/telephone/${v.slug}`,
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -45,7 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Pages SEO locales — réparation Samsung
   const samsungPages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
-    url: `${BASE_URL}/reparation-samsung/${v.slug}`,
+    url: `${BASE_URL}/reparation/samsung/${v.slug}`,
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -53,7 +53,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Pages SEO locales — téléphone reconditionné
   const occasionPages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
-    url: `${BASE_URL}/telephone-occasion/${v.slug}`,
+    url: `${BASE_URL}/telephone/occasion/${v.slug}`,
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.7,

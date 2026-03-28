@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!ville) return { title: 'Page introuvable' }
   const title = `Réparation iPhone ${ville.nom} (${ville.cp}) — Vigus'B | QualiRepar`
   const description = `Réparation iPhone à ${ville.nom} ? Vigus'B répare tous les iPhone au meilleur prix. Bonus QualiRepar -25€, garantie 24 mois. Magasin à ${ville.distance} de ${ville.nom}.`
-  const url = `https://www.vigusb.fr/reparation-iphone/${ville.slug}`
+  const url = `https://www.vigusb.fr/reparation/iphone/${ville.slug}`
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, url } }
 }
 
