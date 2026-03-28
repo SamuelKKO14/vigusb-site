@@ -21,3 +21,57 @@ body {
   color: #1A1A1A;
   background: #FFFFFF;
 }
+
+/* ===== Homepage Animations ===== */
+
+@keyframes marquee-infinite {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee-infinite 30s linear infinite;
+}
+
+@keyframes topbar-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-topbar {
+  animation: topbar-scroll 25s linear infinite;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(12px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-d1 { transition-delay: 0.10s; }
+.reveal-d2 { transition-delay: 0.20s; }
+.reveal-d3 { transition-delay: 0.30s; }
+.reveal-d4 { transition-delay: 0.40s; }
+.reveal-d5 { transition-delay: 0.50s; }
+.reveal-d6 { transition-delay: 0.60s; }
+
+/* Products horizontal scroll snap */
+.products-scroll::-webkit-scrollbar { display: none; }
+.products-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Testimonials fade transition */
+@keyframes testi-in {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.testi-enter { animation: testi-in 0.4s ease forwards; }
