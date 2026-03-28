@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { TELEPHONES, MAGASINS, MARQUES, type Telephone } from '@/lib/data'
+import { getPhoneSlug } from '@/lib/phones-data'
 
 // Map marqueId → logoUrl
 const LOGO_MAP: Record<string, string> = Object.fromEntries(
@@ -115,11 +116,16 @@ export default function HeroSearch() {
   }, [])
 
   const selectPhone = useCallback((phone: Telephone) => {
+    const slug = getPhoneSlug(phone.marque, phone.modele)
+    if (slug) {
+      router.push(`/telephones/${slug}`)
+      return
+    }
     setSelectedPhone(phone)
     setShowDropdown(false)
     setQuery(`${phone.marque} ${phone.modele}`)
     setShowModal(true)
-  }, [])
+  }, [router])
 
   const selectMagasin = useCallback((magasinId: number) => {
     if (!selectedPhone) return
