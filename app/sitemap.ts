@@ -43,6 +43,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
+  // Pages SEO locales — réparation Samsung
+  const samsungPages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
+    url: `${BASE_URL}/reparation-samsung/${v.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
+
   // Pages SEO locales — téléphone reconditionné
   const occasionPages: MetadataRoute.Sitemap = VILLES_SEO.map(v => ({
     url: `${BASE_URL}/telephone-occasion/${v.slug}`,
@@ -56,6 +64,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...phonePages,
     ...iphonePages,
     ...repairPages,
+    ...samsungPages,
     ...occasionPages,
   ]
 }
