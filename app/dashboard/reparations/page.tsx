@@ -62,13 +62,12 @@ export default async function ReparationsPage({ searchParams }: Props) {
   if (searchParams.q) {
     const q = searchParams.q;
     query = query.or(
-      `ticket_number.ilike.%${q}%,nom.ilike.%${q}%,prenom.ilike.%${q}%,email.ilike.%${q}%`
+      `ticket_number.ilike.%${q}%,nom.ilike.%${q}%,prenom.ilike.%${q}%,email.ilike.%${q}%,telephone.ilike.%${q}%`
     );
   }
 
   const { data: reparations, count } = await query
-    .order("rdv_date", { ascending: false })
-    .order("rdv_heure", { ascending: false })
+    .order("created_at", { ascending: false })
     .range(offset, offset + perPage - 1);
 
   return (
@@ -79,6 +78,8 @@ export default async function ReparationsPage({ searchParams }: Props) {
       page={page}
       perPage={perPage}
       isAdmin={isAdmin}
+      userEmail={user.email ?? ""}
+      myMagasinIds={myMagasinIds}
       currentFilters={{
         statut: searchParams.statut,
         magasin: searchParams.magasin,
