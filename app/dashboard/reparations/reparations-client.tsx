@@ -45,10 +45,41 @@ import { useToast } from "@/lib/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect, useCallback, useRef } from "react";
 
-// ── Ding sound via Web Audio API ──────────────────────────────────────
-function playDing() {
+// ── Ding sound via Web Audio API ────────���──────────────────────���──────
+// Browsers (Chrome/Safari/Firefox) block AudioContext playback until the
+// user has interacted with the page (autoplay policy). We use a singleton
+// AudioContext that gets unlocked on the first user gesture (click/touch),
+// then reuse it for every subsequent ding triggered by Realtime events.
+let _audioCtx: AudioContext | null = null;
+
+function getAudioCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  if (!_audioCtx) {
+    try {
+      _audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch {
+      return null;
+    }
+  }
+  return _audioCtx;
+}
+
+async function unlockAudio() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") {
+    try { await ctx.resume(); } catch { /* noop */ }
+  }
+}
+
+async function playDing() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") {
+    try { await ctx.resume(); } catch { return; }
+    if ((ctx.state as string) !== "running") return;
+  }
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -59,7 +90,7 @@ function playDing() {
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
     osc.start();
     osc.stop(ctx.currentTime + 0.3);
-  } catch (_) {
+  } catch {
     /* silent fail */
   }
 }
@@ -107,10 +138,29 @@ export function ReparationsClient({
     if (stored !== null) setSoundEnabled(stored === "1");
   }, []);
 
-  function toggleSound() {
+  // Unlock the AudioContext on the first click anywhere on the dashboard
+  useEffect(() => {
+    function handleFirstClick() {
+      unlockAudio();
+      window.removeEventListener("click", handleFirstClick);
+      window.removeEventListener("touchstart", handleFirstClick);
+    }
+    window.addEventListener("click", handleFirstClick);
+    window.addEventListener("touchstart", handleFirstClick);
+    return () => {
+      window.removeEventListener("click", handleFirstClick);
+      window.removeEventListener("touchstart", handleFirstClick);
+    };
+  }, []);
+
+  async function toggleSound() {
     const next = !soundEnabled;
     setSoundEnabled(next);
     localStorage.setItem("vb-sound", next ? "1" : "0");
+    if (next) {
+      await unlockAudio();
+      playDing();
+    }
   }
 
   // ── Realtime subscription ─────────────────────────────────────────
