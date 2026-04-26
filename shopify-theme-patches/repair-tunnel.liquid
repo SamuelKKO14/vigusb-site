@@ -1,0 +1,464 @@
+{% comment %} Section: repair-tunnel — Tunnel de réparation 4 étapes Vigus'B {% endcomment %}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{{ 'repair-tunnel.css' | asset_url | stylesheet_tag }}
+
+<script>
+  window.VRT_CONFIG = {
+    supabaseFunctionsUrl: {{ section.settings.supabase_functions_url | default: '' | json }},
+    supabaseAnonKey: {{ section.settings.supabase_anon_key | default: '' | json }}
+  };
+</script>
+
+<style>
+  .repair-tunnel .repair-heading {
+    font-size: {{ section.settings.heading_font_size_mobile }};
+  }
+  .repair-tunnel .repair-subheading {
+    font-size: {{ section.settings.subheading_font_size_mobile }};
+  }
+  .repair-tunnel .repair-input {
+    font-size: {{ section.settings.input_font_size_mobile }};
+  }
+  .repair-tunnel .repair-button {
+    font-size: {{ section.settings.button_font_size_mobile }};
+  }
+  .repair-tunnel .repair-reassurance {
+    font-size: {{ section.settings.reassurance_font_size_mobile }};
+  }
+  @media screen and (min-width: 750px) {
+    .repair-tunnel .repair-heading {
+      font-size: {{ section.settings.heading_font_size_desktop }};
+    }
+    .repair-tunnel .repair-subheading {
+      font-size: {{ section.settings.subheading_font_size_desktop }};
+    }
+    .repair-tunnel .repair-input {
+      font-size: {{ section.settings.input_font_size_desktop }};
+    }
+    .repair-tunnel .repair-button {
+      font-size: {{ section.settings.button_font_size_desktop }};
+    }
+    .repair-tunnel .repair-reassurance {
+      font-size: {{ section.settings.reassurance_font_size_desktop }};
+    }
+  }
+</style>
+
+<div id="vrt-anchor"></div>
+
+{%- comment -%} Hidden Shopify contact form for email submission {%- endcomment -%}
+{% form 'contact', id: 'vrt-hidden-form', style: 'display:none' %}
+  <input type="hidden" id="vrt-hf-name" name="contact[name]">
+  <input type="hidden" id="vrt-hf-email" name="contact[email]">
+  <input type="hidden" id="vrt-hf-phone" name="contact[phone]">
+  <textarea id="vrt-hf-body" name="contact[body]"></textarea>
+{% endform %}
+
+<div class="vrt repair-tunnel">
+
+  {%- comment -%} Progress bar {%- endcomment -%}
+  <div class="vrt__progress" id="vrt-progress" role="progressbar" aria-label="Étapes de la demande de réparation"></div>
+
+  <div class="vrt__container">
+
+    {%- comment -%} ── ÉTAPE 1 — Recherche appareil ──────────────────────── {%- endcomment -%}
+    <div class="vrt__step" id="vrt-step-1" role="region" aria-label="Étape 1 — Choisissez votre appareil">
+
+      <div class="vrt__step-1-intro">
+        {% if section.settings.heading != blank %}
+          <h1 class="vrt__main-title repair-heading">{{ section.settings.heading }}</h1>
+        {% else %}
+          <h1 class="vrt__main-title repair-heading">Réparation express en magasin</h1>
+        {% endif %}
+        {% if section.settings.subtitle != blank %}
+          <p class="vrt__main-subtitle repair-subheading">{{ section.settings.subtitle }}</p>
+        {% else %}
+          <p class="vrt__main-subtitle repair-subheading">Sélectionnez votre appareil pour obtenir un devis instantané</p>
+        {% endif %}
+      </div>
+
+      <div class="vrt__search-wrap" role="search">
+        <input
+          type="search"
+          class="vrt__search-input repair-input"
+          id="vrt-search-input"
+          placeholder="Quel est le modèle de votre appareil ?"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          aria-label="Rechercher un modèle de téléphone"
+          aria-autocomplete="list"
+          aria-controls="vrt-dropdown"
+        >
+        <button class="vrt__search-btn repair-button" id="vrt-search-btn" type="button" aria-label="Lancer la recherche">
+          Réparer
+        </button>
+        <div
+          class="vrt__dropdown"
+          id="vrt-dropdown"
+          role="listbox"
+          aria-label="Résultats de recherche"
+        ></div>
+      </div>
+
+    </div>
+
+    {%- comment -%} ── ÉTAPE 2 — Réparations / Protection / Services ────── {%- endcomment -%}
+    <div class="vrt__step" id="vrt-step-2" hidden role="region" aria-label="Étape 2 — Choisissez vos réparations">
+
+      <div class="vrt__step-header">
+        <button class="vrt__back-btn" id="vrt-back-step1" type="button">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+          <span class="vrt__back-device"></span>
+        </button>
+      </div>
+
+      <div class="vrt__block" id="vrt-block-repair">
+        <div class="vrt__block-header">
+          <h2 class="vrt__block-title">Réparation</h2>
+          <div class="vrt__block-line"></div>
+        </div>
+        <div id="vrt-repairs-grid"></div>
+      </div>
+
+      <div class="vrt__block" id="vrt-block-protection">
+        <div class="vrt__block-header">
+          <h2 class="vrt__block-title">Protection</h2>
+          <div class="vrt__block-line"></div>
+        </div>
+        <div id="vrt-protection-grid"></div>
+      </div>
+
+      <div class="vrt__block" id="vrt-block-services">
+        <div class="vrt__block-header">
+          <h2 class="vrt__block-title">Services</h2>
+          <div class="vrt__block-line"></div>
+        </div>
+        <div id="vrt-services-grid"></div>
+      </div>
+
+    </div>
+
+    {%- comment -%} ── ÉTAPE 3 — Coordonnées & Magasin ────────────────── {%- endcomment -%}
+    <div class="vrt__step" id="vrt-step-3" hidden role="region" aria-label="Étape 3 — Vos coordonnées">
+
+      <div class="vrt__step-header">
+        <button class="vrt__back-btn" id="vrt-back-step2" type="button">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+          Retour
+        </button>
+      </div>
+
+      <h2 class="vrt__step-title">Vos coordonnées</h2>
+      <p class="vrt__step-sub">Nous vous contacterons pour confirmer votre rendez-vous.</p>
+
+      <form class="vrt__form" id="vrt-form" novalidate>
+        <div class="vrt__form-row">
+          <div class="vrt__field">
+            <input type="text" id="vrt-prenom" name="prenom" placeholder=" " autocomplete="given-name" required>
+            <label for="vrt-prenom">Prénom *</label>
+          </div>
+          <div class="vrt__field">
+            <input type="text" id="vrt-nom" name="nom" placeholder=" " autocomplete="family-name" required>
+            <label for="vrt-nom">Nom *</label>
+          </div>
+        </div>
+        <div class="vrt__field">
+          <input type="email" id="vrt-email" name="email" placeholder=" " autocomplete="email" required>
+          <label for="vrt-email">Adresse email *</label>
+        </div>
+        <div class="vrt__field">
+          <input type="tel" id="vrt-tel" name="tel" placeholder=" " autocomplete="tel" required>
+          <label for="vrt-tel">Téléphone *</label>
+        </div>
+        <div class="vrt__field">
+          <select id="vrt-store" name="store" required>
+            <option value="" disabled selected></option>
+          </select>
+          <label for="vrt-store">Choisir un magasin *</label>
+        </div>
+
+        <button type="submit" class="vrt__submit-btn">Voir mon devis</button>
+      </form>
+
+    </div>
+
+    {%- comment -%} ── ÉTAPE 4 — Créneau RDV ────────────────────────────── {%- endcomment -%}
+    <div class="vrt__step" id="vrt-step-4" hidden role="region" aria-label="Étape 4 — Choisissez votre créneau">
+
+      <div class="vrt__step-header">
+        <button class="vrt__back-btn" id="vrt-back-step3" type="button">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+          Retour
+        </button>
+      </div>
+
+      <h2 class="vrt__step-title">Choisis ton créneau</h2>
+      <p class="vrt__step-sub">Sélectionne un jour et un horaire pour déposer ton téléphone.</p>
+
+      <div class="vrt__rdv-picker">
+        <div class="vrt__field">
+          <input type="date" id="vrt-rdv-date" required>
+          <label for="vrt-rdv-date">Date du rendez-vous *</label>
+        </div>
+        <div id="vrt-slots-container">
+          <p class="vrt__slots-hint">Choisis une date pour voir les créneaux disponibles</p>
+        </div>
+      </div>
+
+      <button class="vrt__submit-btn" id="vrt-rdv-next-btn" type="button" disabled>Voir mon devis</button>
+
+    </div>
+
+    {%- comment -%} ── ÉTAPE 5 — Récapitulatif & Réservation ────────────── {%- endcomment -%}
+    <div class="vrt__step" id="vrt-step-5" hidden role="region" aria-label="Étape 5 — Votre devis">
+
+      <div class="vrt__step-header">
+        <button class="vrt__back-btn" id="vrt-back-step4" type="button">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+          Modifier mon créneau
+        </button>
+      </div>
+
+      <h2 class="vrt__step-title">Ton devis de réparation</h2>
+
+      <div id="vrt-summary"></div>
+
+      <button class="vrt__reserve-btn" id="vrt-reserve-btn" type="button">
+        Réserver ma réparation
+      </button>
+
+      <div class="vrt__confirmation" id="vrt-confirmation" hidden role="alert">
+        <div class="vrt__confirmation-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3 class="vrt__confirmation-title">Ta réservation est confirmée !</h3>
+        <div class="vrt__confirmation-ticket" id="vrt-conf-ticket"></div>
+        <div class="vrt__confirmation-recap" id="vrt-conf-recap"></div>
+        <p class="vrt__confirmation-email" id="vrt-conf-email-msg"></p>
+        <div class="vrt__confirmation-actions">
+          <button class="vrt__conf-btn vrt__conf-btn--copy" id="vrt-conf-copy" type="button">Copier le ticket</button>
+          <button class="vrt__conf-btn vrt__conf-btn--calendar" id="vrt-conf-calendar" type="button">Ajouter au calendrier</button>
+        </div>
+      </div>
+
+    </div>
+
+    {%- comment -%} ── Barre de réassurance ─────────────────────────────── {%- endcomment -%}
+    <div class="vrt__reassurance" role="list">
+      <div class="vrt__reassurance-item repair-reassurance" role="listitem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+        Réparation express en 30 minutes
+      </div>
+      <div class="vrt__reassurance-item repair-reassurance" role="listitem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Garantie 24 mois
+      </div>
+      <div class="vrt__reassurance-item repair-reassurance" role="listitem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Paiement 4x sans frais
+      </div>
+      <div class="vrt__reassurance-item repair-reassurance" role="listitem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Bonus QualiRepar -25€
+      </div>
+    </div>
+
+  </div>
+
+  {%- comment -%} Floating counter {%- endcomment -%}
+  <div class="vrt__counter" id="vrt-counter" hidden role="status" aria-live="polite">
+    <div class="vrt__counter-info">
+      <span class="vrt__counter-count" id="vrt-counter-count"></span>
+      <span class="vrt__counter-total" id="vrt-counter-total"></span>
+    </div>
+    <button class="vrt__counter-btn" id="vrt-counter-btn" type="button">
+      Continuer
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-left:4px;vertical-align:middle"><path d="M5 2l5 5-5 5"/></svg>
+    </button>
+  </div>
+
+</div>
+
+{{ 'repair-tunnel.js' | asset_url | script_tag }}
+{{ 'repair-tunnel-ui.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Tunnel Réparation",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre principal",
+      "default": "Réparation express en magasin"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Sélectionnez votre appareil pour obtenir un devis instantané"
+    },
+    {
+      "type": "header",
+      "content": "🔗 Supabase (Réservation)"
+    },
+    {
+      "type": "text",
+      "id": "supabase_functions_url",
+      "label": "URL Edge Functions",
+      "default": "https://mrhqpydipamiikgrwnjc.supabase.co/functions/v1"
+    },
+    {
+      "type": "text",
+      "id": "supabase_anon_key",
+      "label": "Clé anon Supabase (publique)",
+      "default": ""
+    },
+    {
+      "type": "header",
+      "content": "📱 Tailles Mobile"
+    },
+    {
+      "type": "select",
+      "id": "heading_font_size_mobile",
+      "label": "Titre principal mobile",
+      "options": [
+        {"value": "20px", "label": "20px"},
+        {"value": "24px", "label": "24px"},
+        {"value": "28px", "label": "28px"},
+        {"value": "32px", "label": "32px"},
+        {"value": "36px", "label": "36px"}
+      ],
+      "default": "28px"
+    },
+    {
+      "type": "select",
+      "id": "subheading_font_size_mobile",
+      "label": "Sous-titre mobile",
+      "options": [
+        {"value": "13px", "label": "13px"},
+        {"value": "14px", "label": "14px"},
+        {"value": "15px", "label": "15px"},
+        {"value": "16px", "label": "16px"},
+        {"value": "18px", "label": "18px"}
+      ],
+      "default": "15px"
+    },
+    {
+      "type": "select",
+      "id": "input_font_size_mobile",
+      "label": "Champ de recherche mobile",
+      "options": [
+        {"value": "14px", "label": "14px"},
+        {"value": "15px", "label": "15px"},
+        {"value": "16px", "label": "16px"},
+        {"value": "18px", "label": "18px"}
+      ],
+      "default": "15px"
+    },
+    {
+      "type": "select",
+      "id": "button_font_size_mobile",
+      "label": "Bouton Réparer mobile",
+      "options": [
+        {"value": "15px", "label": "15px"},
+        {"value": "16px", "label": "16px"},
+        {"value": "18px", "label": "18px"},
+        {"value": "20px", "label": "20px"}
+      ],
+      "default": "16px"
+    },
+    {
+      "type": "select",
+      "id": "reassurance_font_size_mobile",
+      "label": "Textes réassurance mobile",
+      "options": [
+        {"value": "12px", "label": "12px"},
+        {"value": "13px", "label": "13px"},
+        {"value": "14px", "label": "14px"},
+        {"value": "15px", "label": "15px"},
+        {"value": "16px", "label": "16px"}
+      ],
+      "default": "14px"
+    },
+    {
+      "type": "header",
+      "content": "🖥️ Tailles Desktop"
+    },
+    {
+      "type": "select",
+      "id": "heading_font_size_desktop",
+      "label": "Titre principal desktop",
+      "options": [
+        {"value": "24px", "label": "24px"},
+        {"value": "28px", "label": "28px"},
+        {"value": "32px", "label": "32px"},
+        {"value": "36px", "label": "36px"},
+        {"value": "40px", "label": "40px"},
+        {"value": "44px", "label": "44px"},
+        {"value": "48px", "label": "48px"}
+      ],
+      "default": "36px"
+    },
+    {
+      "type": "select",
+      "id": "subheading_font_size_desktop",
+      "label": "Sous-titre desktop",
+      "options": [
+        {"value": "16px", "label": "16px"},
+        {"value": "18px", "label": "18px"},
+        {"value": "20px", "label": "20px"},
+        {"value": "22px", "label": "22px"},
+        {"value": "24px", "label": "24px"}
+      ],
+      "default": "18px"
+    },
+    {
+      "type": "select",
+      "id": "input_font_size_desktop",
+      "label": "Champ de recherche desktop",
+      "options": [
+        {"value": "16px", "label": "16px"},
+        {"value": "18px", "label": "18px"},
+        {"value": "20px", "label": "20px"},
+        {"value": "22px", "label": "22px"}
+      ],
+      "default": "18px"
+    },
+    {
+      "type": "select",
+      "id": "button_font_size_desktop",
+      "label": "Bouton Réparer desktop",
+      "options": [
+        {"value": "18px", "label": "18px"},
+        {"value": "20px", "label": "20px"},
+        {"value": "22px", "label": "22px"},
+        {"value": "24px", "label": "24px"},
+        {"value": "26px", "label": "26px"}
+      ],
+      "default": "20px"
+    },
+    {
+      "type": "select",
+      "id": "reassurance_font_size_desktop",
+      "label": "Textes réassurance desktop",
+      "options": [
+        {"value": "14px", "label": "14px"},
+        {"value": "15px", "label": "15px"},
+        {"value": "16px", "label": "16px"},
+        {"value": "18px", "label": "18px"},
+        {"value": "20px", "label": "20px"}
+      ],
+      "default": "16px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tunnel Réparation"
+    }
+  ]
+}
+{% endschema %}
