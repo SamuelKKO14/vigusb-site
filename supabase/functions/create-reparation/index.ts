@@ -20,8 +20,8 @@ const ReparationSchema = z.object({
   ).min(1),
   total_estime: z.number().nonnegative(),
   magasin_code: z.string().min(2).max(10),
-  rdv_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  rdv_heure: z.string().regex(/^\d{2}:\d{2}$/),
+  rdv_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  rdv_heure: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
 });
 
 serve(async (req) => {
@@ -55,37 +55,42 @@ serve(async (req) => {
       );
     }
 
-    // 2. Vérifier que la date n'est pas un jour de fermeture
-    if (magasin.jours_fermeture?.includes(data.rdv_date)) {
-      return new Response(
-        JSON.stringify({ error: "Le magasin est fermé ce jour-là" }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // 2. Si RDV fourni, vérifier fermeture + dispo
+    if (data.rdv_date) {
+      if (magasin.jours_fermeture?.includes(data.rdv_date)) {
+        return new Response(
+          JSON.stringify({ error: "Le magasin est fermé ce jour-là" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (data.rdv_heure) {
+        const { count } = await supabase
+          .from("reparations")
+          .select("id", { count: "exact", head: true })
+          .eq("magasin_id", magasin.id)
+          .eq("rdv_date", data.rdv_date)
+          .eq("rdv_heure", data.rdv_heure)
+          .not("statut", "in", '("annulee","no_show")');
+
+        if ((count ?? 0) >= magasin.slots_per_30min) {
+          return new Response(
+            JSON.stringify({ error: "Ce créneau est complet" }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
     }
 
-    // 3. Vérifier dispo du slot
-    const { count } = await supabase
-      .from("reparations")
-      .select("id", { count: "exact", head: true })
-      .eq("magasin_id", magasin.id)
-      .eq("rdv_date", data.rdv_date)
-      .eq("rdv_heure", data.rdv_heure)
-      .not("statut", "in", '("annulee","no_show")');
-
-    if ((count ?? 0) >= magasin.slots_per_30min) {
-      return new Response(
-        JSON.stringify({ error: "Ce créneau est complet" }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // 4. Générer le ticket number : VB-{CODE}-{YYMMDD}-{SEQ}
-    const dateStr = data.rdv_date.slice(2).replace(/-/g, ""); // "260427"
+    // 3. Générer le ticket number : VB-{CODE}-{YYMMDD}-{SEQ}
+    const ticketDate = data.rdv_date || new Date().toISOString().slice(0, 10);
+    const dateStr = ticketDate.slice(2).replace(/-/g, "");
     const { count: dayCount } = await supabase
       .from("reparations")
       .select("id", { count: "exact", head: true })
       .eq("magasin_id", magasin.id)
-      .eq("rdv_date", data.rdv_date);
+      .gte("created_at", ticketDate + "T00:00:00")
+      .lt("created_at", ticketDate + "T23:59:59");
 
     const seq = String((dayCount ?? 0) + 1).padStart(2, "0");
     const ticket_number = `VB-${magasin.code}-${dateStr}-${seq}`;
@@ -104,8 +109,8 @@ serve(async (req) => {
         modele: data.modele,
         reparations: data.reparations,
         total_estime: data.total_estime,
-        rdv_date: data.rdv_date,
-        rdv_heure: data.rdv_heure,
+        rdv_date: data.rdv_date || null,
+        rdv_heure: data.rdv_heure || null,
       })
       .select("id, ticket_number")
       .single();
@@ -123,15 +128,16 @@ serve(async (req) => {
     });
 
     // 7. Email de confirmation
-    const joursSemaine = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
-    const dateObj = new Date(data.rdv_date + "T12:00:00");
-    const jourFr = joursSemaine[dateObj.getDay()];
-    const dateFr = dateObj.toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    let dateFr = "À déterminer";
+    if (data.rdv_date) {
+      const dateObj = new Date(data.rdv_date + "T12:00:00");
+      dateFr = dateObj.toLocaleDateString("fr-FR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    }
 
     try {
       await sendEmail({
@@ -145,7 +151,7 @@ serve(async (req) => {
           reparations: data.reparations,
           total_estime: data.total_estime,
           rdv_date: dateFr,
-          rdv_heure: data.rdv_heure,
+          rdv_heure: data.rdv_heure || "À déterminer",
           magasin_nom: magasin.nom,
           magasin_adresse: magasin.adresse,
           magasin_telephone: magasin.telephone,
