@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import imageCompression from "browser-image-compression";
+import { compressImage } from "@/lib/compress-image";
 import { Upload, X, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -92,11 +92,7 @@ export function ReceptionClient({ reparation, userId }: Props) {
     try {
       for (const { file } of files) {
         // Compress
-        const compressed = await imageCompression(file, {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-        });
+        const compressed = await compressImage(file);
 
         const ext = file.name.split(".").pop() ?? "jpg";
         const path = `${reparation.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;

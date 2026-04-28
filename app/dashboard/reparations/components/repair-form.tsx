@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import imageCompression from "browser-image-compression";
-import { X, Upload, Camera } from "lucide-react";
+import { X, Upload, Camera, Loader2 } from "lucide-react";
+import { compressImage } from "@/lib/compress-image";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/lib/hooks/use-toast";
 import { TESTS_TELEPHONE, PIECES_A_CHANGER } from "@/lib/repair-constants";
@@ -90,6 +90,7 @@ export function RepairForm({
   const router = useRouter();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [compressing, setCompressing] = useState(false);
 
   // Section 1 — Réparateur
   const [prisEnChargePar, setPrisEnChargePar] = useState(initialData?.pris_en_charge_par ?? "");
@@ -309,15 +310,12 @@ export function RepairForm({
         ticketNumber = `VB-${mag.code}-${dateStr}-${seq}`;
       }
 
-      // Upload new photos
+      // Compress & upload new photos
       const uploadedPaths: string[] = [];
+      if (newFiles.length > 0) setCompressing(true);
       for (let i = 0; i < newFiles.length; i++) {
         const { file } = newFiles[i];
-        const compressed = await imageCompression(file, {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-        });
+        const compressed = await compressImage(file);
         const photoIndex = existingPhotos.length + i + 1;
         const path = `${magasinId}/${ticketNumber}/${photoIndex}.jpg`;
 
@@ -328,6 +326,7 @@ export function RepairForm({
         if (uploadError) throw uploadError;
         uploadedPaths.push(path);
       }
+      setCompressing(false);
 
       const allPhotoPaths = [...existingPhotos, ...uploadedPaths];
 
@@ -714,7 +713,9 @@ export function RepairForm({
             className="w-full bg-vert hover:bg-vert/90 text-white"
           >
             {submitting
-              ? "Enregistrement..."
+              ? compressing
+                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Compression photos…</>
+                : "Enregistrement..."
               : mode === "create"
                 ? "Créer la prise en charge"
                 : "Enregistrer les modifications"
