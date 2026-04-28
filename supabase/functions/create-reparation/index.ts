@@ -10,15 +10,16 @@ const ReparationSchema = z.object({
   nom: z.string().min(1).max(100),
   email: z.string().email(),
   telephone: z.string().min(8).max(20),
-  marque: z.string().min(1),
+  // marque, reparations, total_estime: acceptés depuis le tunnel mais plus stockés en DB (colonnes supprimées vague 3)
+  marque: z.string().optional().default(""),
   modele: z.string().min(1),
   reparations: z.array(
     z.object({
       label: z.string(),
       prix: z.number().nonnegative(),
     })
-  ).min(1),
-  total_estime: z.number().nonnegative(),
+  ).optional().default([]),
+  total_estime: z.number().nonnegative().optional().default(0),
   magasin_code: z.string().min(2).max(10),
   rdv_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
   rdv_heure: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
@@ -95,7 +96,7 @@ serve(async (req) => {
     const seq = String((dayCount ?? 0) + 1).padStart(2, "0");
     const ticket_number = `VB-${magasin.code}-${dateStr}-${seq}`;
 
-    // 5. INSERT
+    // 5. INSERT — colonnes marque/reparations/total_estime supprimées en vague 3
     const { data: reparation, error: insertError } = await supabase
       .from("reparations")
       .insert({
@@ -105,10 +106,7 @@ serve(async (req) => {
         nom: data.nom,
         email: data.email,
         telephone: data.telephone,
-        marque: data.marque,
         modele: data.modele,
-        reparations: data.reparations,
-        total_estime: data.total_estime,
         rdv_date: data.rdv_date || null,
         rdv_heure: data.rdv_heure || null,
       })
@@ -127,7 +125,7 @@ serve(async (req) => {
       commentaire: "Réservation créée depuis le tunnel",
     });
 
-    // 7. Email de confirmation
+    // 7. Email de confirmation (on passe encore marque/reparations/total pour l'email)
     let dateFr = "À déterminer";
     if (data.rdv_date) {
       const dateObj = new Date(data.rdv_date + "T12:00:00");
@@ -146,10 +144,10 @@ serve(async (req) => {
         html: confirmationReservation({
           ticket_number,
           prenom: data.prenom,
-          marque: data.marque,
+          marque: data.marque || "",
           modele: data.modele,
-          reparations: data.reparations,
-          total_estime: data.total_estime,
+          reparations: data.reparations || [],
+          total_estime: data.total_estime || 0,
           rdv_date: dateFr,
           rdv_heure: data.rdv_heure || "À déterminer",
           magasin_nom: magasin.nom,

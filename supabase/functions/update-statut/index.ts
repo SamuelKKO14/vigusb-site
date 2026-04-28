@@ -12,6 +12,8 @@ import {
 const STATUTS_VALIDES = [
   "en_attente", "recue", "en_cours",
   "terminee", "recuperee", "annulee", "no_show",
+  // Vague 3 — nouveaux statuts
+  "diagnostic", "en_reparation", "prete",
 ] as const;
 
 const UpdateSchema = z.object({
@@ -118,18 +120,18 @@ serve(async (req) => {
           html: telephoneRecu({
             ticket_number: reparation.ticket_number,
             prenom: reparation.prenom,
-            marque: reparation.marque,
+            marque: "",
             modele: reparation.modele,
           }),
         });
-      } else if (data.nouveau_statut === "terminee") {
+      } else if (data.nouveau_statut === "terminee" || data.nouveau_statut === "prete") {
         await sendEmail({
           to: reparation.email,
           subject: `Ton tel est prêt ! — ${reparation.ticket_number}`,
           html: reparationTerminee({
             ticket_number: reparation.ticket_number,
             prenom: reparation.prenom,
-            marque: reparation.marque,
+            marque: "",
             modele: reparation.modele,
             magasin_nom: magasin.nom,
             magasin_adresse: magasin.adresse,

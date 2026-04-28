@@ -2,12 +2,17 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  en_attente: { label: "En attente", className: "bg-gray-100 text-gray-700 border-gray-200" },
+  // New statuts (vague 3)
   recue: { label: "Reçue", className: "bg-blue-100 text-blue-700 border-blue-200" },
-  en_cours: { label: "En cours", className: "bg-orange-100 text-orange-700 border-orange-200" },
-  terminee: { label: "Terminée", className: "bg-green-100 text-green-700 border-green-200" },
+  diagnostic: { label: "En diagnostic", className: "bg-purple-100 text-purple-700 border-purple-200" },
+  en_reparation: { label: "En réparation", className: "bg-orange-100 text-orange-700 border-orange-200" },
+  prete: { label: "Prête", className: "bg-green-100 text-green-700 border-green-200" },
   recuperee: { label: "Récupérée", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
   annulee: { label: "Annulée", className: "bg-red-100 text-red-700 border-red-200" },
+  // Legacy statuts (backward compat)
+  en_attente: { label: "En attente", className: "bg-gray-100 text-gray-700 border-gray-200" },
+  en_cours: { label: "En cours", className: "bg-orange-100 text-orange-700 border-orange-200" },
+  terminee: { label: "Terminée", className: "bg-green-100 text-green-700 border-green-200" },
   no_show: { label: "No-show", className: "bg-gray-900 text-white border-gray-900" },
 };
 

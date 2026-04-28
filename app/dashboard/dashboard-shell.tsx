@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 
 interface DashboardShellProps {
@@ -26,6 +27,7 @@ interface DashboardShellProps {
 
 const NAV_ITEMS = [
   { href: "/dashboard/reparations", label: "Réparations", icon: Wrench },
+  { href: "/dashboard/statistiques", label: "Statistiques", icon: BarChart3 },
   { href: "/dashboard/calendrier", label: "Calendrier", icon: Calendar },
   { href: "/dashboard/magasins-admin", label: "Magasins", icon: Store, adminOnly: true },
   { href: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: true },

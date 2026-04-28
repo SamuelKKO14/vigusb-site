@@ -13,8 +13,10 @@ import {
   Smartphone,
   MapPin,
   Calendar,
-  Camera,
   Clock,
+  Pencil,
+  Trash2,
+  MapPinned,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,115 +33,52 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { StatusBadge, ALL_STATUTS, getStatusLabel } from "@/components/status-badge";
 import { TicketDisplay } from "@/components/ticket-display";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { PhotoGallery } from "@/components/photo-gallery";
+import { StatusSelector } from "../components/status-selector";
+import { RepairForm } from "../components/repair-form";
+import { getStatusLabel } from "@/components/status-badge";
 import { useToast } from "@/lib/hooks/use-toast";
+import { TESTS_TELEPHONE, PIECES_A_CHANGER } from "@/lib/repair-constants";
 
 interface Props {
   reparation: any;
   logs: any[];
-  photos: { id: string; url: string; type: "reception" | "sortie"; storage_path: string; uploaded_at: string }[];
+  photoUrls: { path: string; url: string }[];
+  legacyPhotos: { id: string; url: string; type: string; storage_path: string; uploaded_at: string }[];
   userId: string;
+  userEmail: string;
+  isAdmin: boolean;
+  magasins: { id: string; code: string; nom: string; ville: string }[];
+  myMagasinIds: string[];
 }
 
 export function ReparationDetailClient({
   reparation,
   logs,
-  photos,
+  photoUrls,
+  legacyPhotos,
   userId,
+  userEmail,
+  isAdmin,
+  magasins,
+  myMagasinIds,
 }: Props) {
   const router = useRouter();
   const { toast } = useToast();
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [cancelOpen, setCancelOpen] = useState(false);
-  const [newStatut, setNewStatut] = useState("");
-  const [commentaire, setCommentaire] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [notes, setNotes] = useState(reparation.notes_staff ?? "");
   const [savingNotes, setSavingNotes] = useState(false);
 
   const magasin = reparation.magasins;
-  const reps: { label: string; prix: number }[] = reparation.reparations ?? [];
-
-  async function handleStatusChange() {
-    if (!newStatut) return;
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/update-statut`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            reparation_id: reparation.id,
-            nouveau_statut: newStatut,
-            commentaire: commentaire || undefined,
-          }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Erreur mise à jour");
-
-      toast({ title: "Statut mis à jour" });
-      setStatusOpen(false);
-      setCommentaire("");
-      router.refresh();
-    } catch {
-      toast({ variant: "destructive", title: "Erreur lors de la mise à jour" });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleCancel() {
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/update-statut`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            reparation_id: reparation.id,
-            nouveau_statut: "annulee",
-            commentaire: "Annulée par le staff",
-          }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Erreur annulation");
-
-      toast({ title: "Réservation annulée" });
-      setCancelOpen(false);
-      router.refresh();
-    } catch {
-      toast({ variant: "destructive", title: "Erreur lors de l'annulation" });
-    } finally {
-      setLoading(false);
-    }
-  }
+  const allPhotos = [
+    ...photoUrls.map((p) => ({ url: p.url, label: "Prise en charge" })),
+    ...legacyPhotos.map((p) => ({ url: p.url, label: p.type === "reception" ? "Réception" : "Sortie" })),
+  ];
 
   async function saveNotes() {
     setSavingNotes(true);
@@ -157,6 +96,22 @@ export function ReparationDetailClient({
     }
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const supabase = createClient();
+      await supabase.from("reparation_logs").delete().eq("reparation_id", reparation.id);
+      await supabase.from("reparations").delete().eq("id", reparation.id);
+      toast({ title: "Fiche supprimée" });
+      router.push("/dashboard/reparations");
+      router.refresh();
+    } catch {
+      toast({ variant: "destructive", title: "Erreur suppression" });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -169,27 +124,32 @@ export function ReparationDetailClient({
           </Link>
           <div>
             <TicketDisplay ticket={reparation.ticket_number} size="lg" />
-            <div className="mt-1">
-              <StatusBadge statut={reparation.statut} />
+            <div className="mt-2">
+              <StatusSelector
+                reparationId={reparation.id}
+                currentStatut={reparation.statut}
+                userEmail={userEmail}
+                variant="full"
+                onStatusChange={() => router.refresh()}
+              />
             </div>
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Link href={`/dashboard/reparations/${reparation.id}/reception`}>
-            <Button variant="outline" size="sm" className="gap-1">
-              <Camera className="h-4 w-4" /> Photos
-            </Button>
-          </Link>
-          <Button size="sm" onClick={() => setStatusOpen(true)} className="bg-violet hover:bg-violet-dark gap-1">
-            Changer statut
+          <Button
+            size="sm"
+            onClick={() => setEditOpen(true)}
+            className="bg-violet hover:bg-violet-dark gap-1"
+          >
+            <Pencil className="h-4 w-4" /> Modifier
           </Button>
-          {reparation.statut !== "annulee" && reparation.statut !== "recuperee" && (
+          {isAdmin && (
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => setCancelOpen(true)}
+              onClick={() => setDeleteOpen(true)}
             >
-              Annuler
+              <Trash2 className="h-4 w-4 mr-1" /> Supprimer
             </Button>
           )}
         </div>
@@ -206,57 +166,103 @@ export function ReparationDetailClient({
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p className="font-semibold text-lg">{reparation.prenom} {reparation.nom}</p>
-            <p className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-              <a href={`mailto:${reparation.email}`} className="text-violet hover:underline">{reparation.email}</a>
-            </p>
+            {reparation.code_postal && (
+              <p className="flex items-center gap-2">
+                <MapPinned className="h-3.5 w-3.5 text-muted-foreground" />
+                {reparation.code_postal}
+              </p>
+            )}
+            {reparation.email && (
+              <p className="flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                <a href={`mailto:${reparation.email}`} className="text-violet hover:underline">{reparation.email}</a>
+              </p>
+            )}
             <p className="flex items-center gap-2">
               <Phone className="h-3.5 w-3.5 text-muted-foreground" />
               <a href={`tel:${reparation.telephone}`} className="text-violet hover:underline">{reparation.telephone}</a>
             </p>
+            {reparation.pris_en_charge_par && (
+              <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                Pris en charge par <span className="font-semibold text-foreground">{reparation.pris_en_charge_par}</span>
+              </p>
+            )}
           </CardContent>
         </Card>
 
-        {/* Téléphone */}
+        {/* Appareil */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Smartphone className="h-4 w-4 text-violet" /> Téléphone
+              <Smartphone className="h-4 w-4 text-violet" /> Appareil
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <p className="font-semibold text-lg">{reparation.marque} {reparation.modele}</p>
-            <ul className="space-y-1">
-              {reps.map((r, i) => (
-                <li key={i} className="flex justify-between border-b border-dashed pb-1 last:border-0">
-                  <span>{r.label}</span>
-                  <span className="font-semibold">{r.prix}€</span>
-                </li>
-              ))}
-            </ul>
-            <div className="flex justify-between pt-1 text-base font-bold text-vert">
-              <span>Total estimé</span>
-              <span>{reparation.total_estime}€</span>
+            <p className="font-semibold text-lg">{reparation.modele}</p>
+            <p className="text-muted-foreground">
+              Tiroir SIM : {reparation.tiroir_sim === true ? "Oui" : reparation.tiroir_sim === false ? "Non" : "—"}
+            </p>
+            {reparation.test_telephone?.length > 0 && (
+              <div>
+                <p className="font-medium text-xs text-muted-foreground uppercase mt-2">Tests</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {reparation.test_telephone.map((t: string) => (
+                    <span key={t} className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {reparation.pieces_a_changer?.length > 0 && (
+              <div>
+                <p className="font-medium text-xs text-muted-foreground uppercase mt-2">Pièces à changer</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {reparation.pieces_a_changer.map((p: string) => (
+                    <span key={p} className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full">{p}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="flex justify-between pt-2 text-base font-bold border-t mt-2">
+              <span>{reparation.sav ? "SAV (garantie)" : "Tarif"}</span>
+              <span className="text-vert">
+                {reparation.sav ? "0 €" : `${reparation.tarif ?? 0} €`}
+              </span>
             </div>
+            {(reparation.upsell_batterie !== null || reparation.upsell_protection !== null) && (
+              <div className="text-xs text-muted-foreground space-y-0.5 pt-1">
+                {reparation.upsell_batterie !== null && (
+                  <p>Upsell batterie : {reparation.upsell_batterie ? "✓ Oui" : "✗ Non"}</p>
+                )}
+                {reparation.upsell_protection !== null && (
+                  <p>Protection écran : {reparation.upsell_protection ? "✓ Oui" : "✗ Non"}</p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* RDV */}
+        {/* RDV / Magasin */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-violet" /> Rendez-vous
+              <Calendar className="h-4 w-4 text-violet" /> {reparation.rdv_date ? "Rendez-vous" : "Magasin"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <p className="font-semibold text-lg">
-              {format(new Date(reparation.rdv_date), "EEEE d MMMM yyyy", { locale: fr })}
-            </p>
-            <p className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              {reparation.rdv_heure?.slice(0, 5)}
-            </p>
-            <div className="pt-2 border-t">
+            {reparation.rdv_date && (
+              <>
+                <p className="font-semibold text-lg">
+                  {format(new Date(reparation.rdv_date), "EEEE d MMMM yyyy", { locale: fr })}
+                </p>
+                {reparation.rdv_heure && (
+                  <p className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    {reparation.rdv_heure?.slice(0, 5)}
+                  </p>
+                )}
+              </>
+            )}
+            <div className={reparation.rdv_date ? "pt-2 border-t" : ""}>
               <p className="flex items-center gap-2 font-semibold">
                 <MapPin className="h-3.5 w-3.5 text-violet" />
                 {magasin?.nom}
@@ -266,6 +272,9 @@ export function ReparationDetailClient({
                 <p className="text-muted-foreground ml-5">{magasin.telephone}</p>
               )}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Créé le {format(new Date(reparation.created_at), "dd/MM/yyyy à HH:mm", { locale: fr })}
+            </p>
           </CardContent>
         </Card>
 
@@ -273,11 +282,25 @@ export function ReparationDetailClient({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Camera className="h-4 w-4 text-violet" /> Photos
+              📷 Photos ({allPhotos.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <PhotoGallery photos={photos} />
+            {allPhotos.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Aucune photo</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {allPhotos.map((photo, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setLightboxUrl(photo.url)}
+                    className="aspect-square rounded-lg overflow-hidden border hover:ring-2 hover:ring-violet transition-all"
+                  >
+                    <img src={photo.url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -337,57 +360,41 @@ export function ReparationDetailClient({
         </Card>
       </div>
 
-      {/* Dialog changer statut */}
-      <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Changer le statut</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Select value={newStatut} onValueChange={setNewStatut}>
-              <SelectTrigger>
-                <SelectValue placeholder="Nouveau statut" />
-              </SelectTrigger>
-              <SelectContent>
-                {ALL_STATUTS.filter((s) => s !== reparation.statut).map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {getStatusLabel(s)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Textarea
-              placeholder="Commentaire (optionnel)"
-              value={commentaire}
-              onChange={(e) => setCommentaire(e.target.value)}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStatusOpen(false)}>
-              Annuler
-            </Button>
-            <Button
-              className="bg-violet hover:bg-violet-dark"
-              onClick={handleStatusChange}
-              disabled={!newStatut || loading}
-            >
-              {loading ? "..." : "Confirmer"}
-            </Button>
-          </DialogFooter>
+      {/* Lightbox photo */}
+      <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          {lightboxUrl && (
+            <img src={lightboxUrl} alt="Photo" className="w-full h-auto rounded-lg" />
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* Dialog annulation */}
-      <ConfirmDialog
-        open={cancelOpen}
-        onOpenChange={setCancelOpen}
-        title="Annuler la réservation"
-        description={`Tu es sûr de vouloir annuler la réservation ${reparation.ticket_number} ? Un email sera envoyé au client.`}
-        confirmLabel="Oui, annuler"
-        variant="destructive"
-        loading={loading}
-        onConfirm={handleCancel}
+      {/* Edit form */}
+      <RepairForm
+        mode="edit"
+        initialData={reparation}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        magasins={magasins}
+        currentUserMagasinId={myMagasinIds[0] ?? null}
+        isAdmin={isAdmin}
+        userEmail={userEmail}
+        onSuccess={() => router.refresh()}
       />
+
+      {/* Delete confirmation */}
+      {isAdmin && (
+        <ConfirmDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          title="Supprimer la fiche"
+          description={`Supprimer définitivement la fiche ${reparation.ticket_number} ? Cette action est irréversible.`}
+          confirmLabel="Supprimer"
+          variant="destructive"
+          loading={deleting}
+          onConfirm={handleDelete}
+        />
+      )}
     </div>
   );
 }
