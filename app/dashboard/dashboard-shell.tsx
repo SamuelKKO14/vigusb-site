@@ -16,12 +16,14 @@ import {
   Menu,
   X,
   BarChart3,
+  ShieldAlert,
 } from "lucide-react";
 
 interface DashboardShellProps {
   user: { id: string; email: string };
   isAdmin: boolean;
   magasins: { id: string; code: string; nom: string; ville: string }[];
+  fallbackCount?: number;
   children: React.ReactNode;
 }
 
@@ -31,12 +33,14 @@ const NAV_ITEMS = [
   { href: "/dashboard/calendrier", label: "Calendrier", icon: Calendar },
   { href: "/dashboard/magasins-admin", label: "Magasins", icon: Store, adminOnly: true },
   { href: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: true },
+  { href: "/dashboard/fallback", label: "Fallback", icon: ShieldAlert, adminOnly: true },
 ];
 
 export function DashboardShell({
   user,
   isAdmin,
   magasins,
+  fallbackCount = 0,
   children,
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -125,6 +129,11 @@ export function DashboardShell({
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
+                {item.href === "/dashboard/fallback" && fallbackCount > 0 && (
+                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                    {fallbackCount}
+                  </span>
+                )}
               </Link>
             );
           })}

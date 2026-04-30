@@ -29,11 +29,22 @@ export default async function DashboardLayout({
   const magasins =
     staffEntries?.map((s) => s.magasins).filter(Boolean).flat() ?? [];
 
+  // Fetch pending fallback count for admin badge
+  let fallbackCount = 0;
+  if (isAdmin) {
+    const { count } = await supabase
+      .from("reparations_fallback")
+      .select("id", { count: "exact", head: true })
+      .eq("recovered", false);
+    fallbackCount = count ?? 0;
+  }
+
   return (
     <DashboardShell
       user={{ id: user.id, email: user.email ?? "" }}
       isAdmin={isAdmin}
       magasins={magasins as any}
+      fallbackCount={fallbackCount}
     >
       {children}
     </DashboardShell>
