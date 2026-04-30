@@ -36,27 +36,52 @@ export function StatusSelector({
     setLoading(true);
     try {
       const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      // Update statut
-      const { error } = await supabase
+      const { error: updateErr, data: updateData } = await supabase
         .from("reparations")
         .update({ statut: newStatut })
-        .eq("id", reparationId);
+        .eq("id", reparationId)
+        .select("id")
+        .maybeSingle();
 
-      if (error) throw error;
+      if (updateErr) {
+        console.error("[StatusSelector] update error:", updateErr);
+        throw new Error(`UPDATE: ${updateErr.message}${updateErr.code ? ` [${updateErr.code}]` : ""}`);
+      }
+      if (!updateData) {
+        throw new Error("UPDATE: aucune ligne modifiée (RLS bloque ou id introuvable)");
+      }
 
-      // Insert log
-      await supabase.from("reparation_logs").insert({
+      const { error: logErr } = await supabase.from("reparation_logs").insert({
         reparation_id: reparationId,
         ancien_statut: currentStatut,
         nouveau_statut: newStatut,
+        user_id: user?.id ?? null,
         commentaire: `Changement par ${userEmail}`,
       });
 
+      if (logErr) {
+        console.error("[StatusSelector] log insert error:", logErr);
+        toast({
+          variant: "destructive",
+          title: `Statut → ${STATUTS[newStatut as Statut] ?? newStatut}`,
+          description: `⚠️ Log non enregistré : ${logErr.message}${logErr.code ? ` [${logErr.code}]` : ""}`,
+        });
+        onStatusChange?.(newStatut);
+        return;
+      }
+
       toast({ title: `Statut → ${STATUTS[newStatut as Statut] ?? newStatut}` });
       onStatusChange?.(newStatut);
-    } catch {
-      toast({ variant: "destructive", title: "Erreur changement de statut" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[StatusSelector] full error:", e);
+      toast({
+        variant: "destructive",
+        title: "Erreur changement de statut",
+        description: msg,
+      });
     } finally {
       setLoading(false);
     }
