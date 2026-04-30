@@ -21,6 +21,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { BarChart3 } from "lucide-react";
 
 interface Magasin {
   id: string;
@@ -75,17 +76,11 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
     ? magasins
     : magasins.filter((m) => myMagasinIds.includes(m.id));
 
-  const selectedMagasinIds =
-    magasinFilter === "all"
-      ? accessibleMagasins.map((m) => m.id)
-      : [magasinFilter];
-
   const fetchStats = useCallback(async () => {
     setLoading(true);
     const supabase = createClient();
     const startDate = getStartDate(periode);
 
-    // Build base query filters
     let query = supabase.from("reparations").select("*");
     if (startDate) query = query.gte("created_at", startDate);
     if (magasinFilter !== "all") {
@@ -97,39 +92,42 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
     const { data: reparations } = await query;
     const items = reparations ?? [];
 
-    // Card 1 — Prises en charge par réparateur
+    // Card 1 — Par réparateur
     const byRep: Record<string, number> = {};
     items.forEach((r) => {
       const name = r.pris_en_charge_par || "(non renseigné)";
       byRep[name] = (byRep[name] || 0) + 1;
     });
-    const repData = Object.entries(byRep)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-    setReparateurData(repData);
+    setReparateurData(
+      Object.entries(byRep)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+    );
 
     // Card 2 — Top modèles
     const byModele: Record<string, number> = {};
     items.forEach((r) => {
       if (r.modele) byModele[r.modele] = (byModele[r.modele] || 0) + 1;
     });
-    const modData = Object.entries(byModele)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
-    setModelesData(modData);
+    setModelesData(
+      Object.entries(byModele)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10)
+    );
 
-    // Card 3 — Top pièces changées
+    // Card 3 — Pièces changées
     const byPiece: Record<string, number> = {};
     items.forEach((r) => {
       (r.pieces_a_changer ?? []).forEach((p: string) => {
         byPiece[p] = (byPiece[p] || 0) + 1;
       });
     });
-    const pieceData = Object.entries(byPiece)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-    setPiecesData(pieceData);
+    setPiecesData(
+      Object.entries(byPiece)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+    );
 
     // Card 4 — Évolution par jour
     const byDay: Record<string, number> = {};
@@ -137,12 +135,13 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
       const jour = r.created_at?.slice(0, 10) ?? "";
       if (jour) byDay[jour] = (byDay[jour] || 0) + 1;
     });
-    const evoData = Object.entries(byDay)
-      .map(([jour, value]) => ({ jour, value }))
-      .sort((a, b) => a.jour.localeCompare(b.jour));
-    setEvolutionData(evoData);
+    setEvolutionData(
+      Object.entries(byDay)
+        .map(([jour, value]) => ({ jour, value }))
+        .sort((a, b) => a.jour.localeCompare(b.jour))
+    );
 
-    // Card 5 — Stats par magasin (admin)
+    // Card 5 — Par magasin (admin)
     if (isAdmin) {
       const byMag: Record<string, number> = {};
       items.forEach((r) => {
@@ -150,13 +149,14 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
         const name = mag?.ville ?? "Inconnu";
         byMag[name] = (byMag[name] || 0) + 1;
       });
-      const magData = Object.entries(byMag)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value);
-      setMagasinData(magData);
+      setMagasinData(
+        Object.entries(byMag)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+      );
     }
 
-    // Card 6 — Délai moyen (simplifié: created_at → dernier log "recuperee")
+    // Card 6 — Délai moyen
     const { data: allLogs } = await supabase
       .from("reparation_logs")
       .select("reparation_id, nouveau_statut, created_at")
@@ -178,13 +178,14 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
         delaiByMag[name].total += heures;
         delaiByMag[name].count += 1;
       });
-    const delData = Object.entries(delaiByMag)
-      .map(([name, { total, count }]) => ({
-        name,
-        value: Math.round(total / count),
-      }))
-      .sort((a, b) => a.value - b.value);
-    setDelaiData(delData);
+    setDelaiData(
+      Object.entries(delaiByMag)
+        .map(([name, { total, count }]) => ({
+          name,
+          value: Math.round(total / count),
+        }))
+        .sort((a, b) => a.value - b.value)
+    );
 
     setLoading(false);
   }, [periode, magasinFilter, isAdmin, myMagasinIds, magasins]);
@@ -194,13 +195,13 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
   }, [fetchStats]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-7xl mx-auto">
       <h1 className="text-xl font-bold sm:text-2xl">Statistiques</h1>
 
       {/* Filters */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sticky top-0 z-10 bg-gray-50 py-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sticky top-0 sm:top-0 z-10 bg-gray-50 py-2 -mx-4 px-4 sm:mx-0 sm:px-0">
         <Select value={periode} onValueChange={(v) => setPeriode(v as Periode)}>
-          <SelectTrigger className="w-full sm:w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px] h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -213,7 +214,7 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
         </Select>
 
         <Select value={magasinFilter} onValueChange={setMagasinFilter}>
-          <SelectTrigger className="w-full sm:w-[220px]">
+          <SelectTrigger className="w-full sm:w-[220px] h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -231,8 +232,8 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
         {loading && <span className="text-sm text-muted-foreground">Chargement...</span>}
       </div>
 
-      {/* Charts grid */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {/* Charts — stacked on mobile, grid on desktop */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {/* Card 1 — Par réparateur */}
         <Card>
           <CardHeader className="pb-2">
@@ -242,7 +243,7 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
             {reparateurData.length === 0 ? (
               <EmptyState />
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={reparateurData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
@@ -264,7 +265,7 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
             {modelesData.length === 0 ? (
               <EmptyState />
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={modelesData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" allowDecimals={false} />
@@ -286,7 +287,7 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
             {piecesData.length === 0 ? (
               <EmptyState />
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={piecesData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" allowDecimals={false} />
@@ -300,15 +301,15 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
         </Card>
 
         {/* Card 4 — Évolution par jour */}
-        <Card className="md:col-span-2 xl:col-span-1">
+        <Card className="sm:col-span-2 xl:col-span-1">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Évolution prises en charge / jour</CardTitle>
+            <CardTitle className="text-sm font-semibold">Évolution / jour</CardTitle>
           </CardHeader>
           <CardContent>
             {evolutionData.length === 0 ? (
               <EmptyState />
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={evolutionData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
@@ -331,17 +332,17 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
           </CardContent>
         </Card>
 
-        {/* Card 5 — Stats par magasin (admin only) */}
+        {/* Card 5 — Par magasin (admin) */}
         {isAdmin && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Prises en charge par magasin</CardTitle>
+              <CardTitle className="text-sm font-semibold">Par magasin</CardTitle>
             </CardHeader>
             <CardContent>
               {magasinData.length === 0 ? (
                 <EmptyState />
               ) : (
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={magasinData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} />
@@ -358,13 +359,13 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
         {/* Card 6 — Délai moyen */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Délai moyen Reçue → Récupérée (heures)</CardTitle>
+            <CardTitle className="text-sm font-semibold">Délai moyen (heures)</CardTitle>
           </CardHeader>
           <CardContent>
             {delaiData.length === 0 ? (
               <EmptyState />
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={delaiData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" unit="h" />
@@ -383,8 +384,9 @@ export function StatsClient({ isAdmin, myMagasinIds, magasins }: Props) {
 
 function EmptyState() {
   return (
-    <div className="flex items-center justify-center h-[200px] text-sm text-muted-foreground">
-      Pas encore de données
+    <div className="flex flex-col items-center justify-center h-[220px] text-muted-foreground">
+      <BarChart3 className="h-8 w-8 mb-2 opacity-30" />
+      <p className="text-sm">Pas encore de données</p>
     </div>
   );
 }

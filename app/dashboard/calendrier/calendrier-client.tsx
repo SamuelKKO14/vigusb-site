@@ -4,12 +4,11 @@ import { useRouter } from "next/navigation";
 import {
   format,
   addDays,
-  startOfWeek,
   addWeeks,
   subWeeks,
 } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
@@ -76,18 +75,18 @@ export function CalendrierClient({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-7xl mx-auto">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-bold sm:text-2xl">Calendrier</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => navigate("prev")}>
+          <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => navigate("prev")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm font-medium min-w-[180px] text-center">
             {format(ws, "d MMM", { locale: fr })} —{" "}
             {format(addDays(ws, 6), "d MMM yyyy", { locale: fr })}
           </span>
-          <Button variant="outline" size="icon" onClick={() => navigate("next")}>
+          <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => navigate("next")}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -102,8 +101,8 @@ export function CalendrierClient({
         />
       )}
 
-      {/* Week grid */}
-      <div className="grid gap-3 md:grid-cols-7">
+      {/* Week grid — single column mobile, 7 columns desktop */}
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-7">
         {days.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const dayReps = reparations.filter((r) => r.rdv_date === dateStr);
@@ -112,24 +111,31 @@ export function CalendrierClient({
           return (
             <Card
               key={dateStr}
-              className={cn("min-h-[120px]", isToday && "ring-2 ring-violet")}
+              className={cn("min-h-[80px] md:min-h-[120px]", isToday && "ring-2 ring-violet")}
             >
               <CardHeader className="p-3 pb-1">
-                <CardTitle className="text-xs font-medium uppercase text-muted-foreground">
-                  {format(day, "EEE", { locale: fr })}
-                </CardTitle>
-                <p
-                  className={cn(
-                    "text-lg font-bold",
-                    isToday && "text-violet"
+                <div className="flex items-baseline gap-2 md:flex-col md:gap-0">
+                  <CardTitle className="text-xs font-medium uppercase text-muted-foreground">
+                    {format(day, "EEEE", { locale: fr })}
+                  </CardTitle>
+                  <p
+                    className={cn(
+                      "text-lg font-bold",
+                      isToday && "text-violet"
+                    )}
+                  >
+                    {format(day, "d MMM", { locale: fr })}
+                  </p>
+                  {dayReps.length > 0 && (
+                    <span className="text-xs text-muted-foreground md:hidden ml-auto">
+                      {dayReps.length} RDV
+                    </span>
                   )}
-                >
-                  {format(day, "d")}
-                </p>
+                </div>
               </CardHeader>
-              <CardContent className="p-3 pt-0 space-y-1">
+              <CardContent className="p-3 pt-0 space-y-1.5">
                 {dayReps.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">
+                  <p className="text-xs text-muted-foreground italic py-1">
                     Aucun RDV
                   </p>
                 ) : (
@@ -140,7 +146,7 @@ export function CalendrierClient({
                         router.push(`/dashboard/reparations/${r.id}`)
                       }
                       className={cn(
-                        "w-full text-left rounded p-1.5 text-xs border-l-4 bg-gray-50 hover:bg-gray-100 transition-colors",
+                        "w-full text-left rounded-lg p-2 text-xs border-l-4 bg-gray-50 active:bg-gray-100 hover:bg-gray-100 transition-colors min-h-[40px]",
                         magasinColorMap[r.magasin_id] ?? "border-l-gray-400"
                       )}
                     >

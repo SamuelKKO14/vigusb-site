@@ -61,19 +61,28 @@ export function DashboardShell({
     <div className="min-h-screen bg-gray-50">
       {/* Mobile header */}
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-white px-4 lg:hidden">
-        <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="relative h-10 w-10 flex items-center justify-center -ml-2 rounded-lg active:bg-gray-100"
+        >
           <Menu className="h-5 w-5" />
+          {/* Fallback badge on hamburger */}
+          {isAdmin && fallbackCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+              {fallbackCount}
+            </span>
+          )}
         </button>
         <span className="font-bold text-lg">
           Vigus<span className="text-vert">&apos;</span>B
         </span>
-        <div className="w-9" />
+        <div className="w-10" />
       </header>
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-50 bg-black/40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -81,24 +90,24 @@ export function DashboardShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform border-r bg-white transition-transform duration-200 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-72 sm:w-64 flex flex-col transform border-r bg-white transition-transform duration-200 ease-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-14 items-center justify-between border-b px-4">
+        <div className="flex h-14 items-center justify-between border-b px-4 shrink-0">
           <span className="font-bold text-lg">
             Vigus<span className="text-vert">&apos;</span>B
           </span>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1 lg:hidden"
+            className="h-10 w-10 flex items-center justify-center rounded-lg active:bg-gray-100 lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Magasin actif */}
-        <div className="border-b px-4 py-3">
+        <div className="border-b px-4 py-3 shrink-0">
           <p className="text-xs text-muted-foreground">
             {isAdmin ? "Admin global" : "Magasin"}
           </p>
@@ -112,7 +121,7 @@ export function DashboardShell({
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
           {filteredNav.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -121,13 +130,13 @@ export function DashboardShell({
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 min-h-[44px] text-sm font-medium transition-colors",
                   isActive
                     ? "bg-violet text-white"
-                    : "text-gray-700 hover:bg-violet/10"
+                    : "text-gray-700 hover:bg-violet/10 active:bg-violet/15"
                 )}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
                 {item.href === "/dashboard/fallback" && fallbackCount > 0 && (
                   <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
@@ -140,13 +149,13 @@ export function DashboardShell({
         </nav>
 
         {/* Footer */}
-        <div className="border-t p-3">
+        <div className="border-t p-3 shrink-0">
           <p className="mb-2 truncate px-3 text-xs text-muted-foreground">
             {user.email}
           </p>
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="w-full justify-start gap-2 text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100 min-h-[44px]"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />

@@ -395,14 +395,14 @@ export function RepairForm({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm:max-h-[85vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[85vh] overflow-y-auto p-0 sm:p-6 gap-0 sm:rounded-lg rounded-none w-full sm:w-auto">
+        <DialogHeader className="sticky top-0 z-10 bg-white border-b sm:border-0 p-4 sm:p-0 sm:static">
           <DialogTitle>
             {mode === "create" ? "Nouvelle prise en charge" : `Modifier ${initialData?.ticket_number ?? ""}`}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:p-0 pb-24 sm:pb-0">
           {/* ── SECTION 1: Réparateur ─────────────────────────────── */}
           <fieldset className="space-y-3">
             <legend className="text-sm font-semibold text-violet uppercase tracking-wide">
@@ -482,14 +482,14 @@ export function RepairForm({
             {/* Test téléphone */}
             <div>
               <Label className="mb-2 block">Test du téléphone * <span className="text-xs text-muted-foreground">({testTelephone.length} sélectionné{testTelephone.length > 1 ? "s" : ""})</span></Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-64 overflow-y-auto border rounded-lg p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 max-h-64 overflow-y-auto border rounded-lg p-2 sm:p-3">
                 {TESTS_TELEPHONE.map((test) => (
-                  <label key={test} className="flex items-start gap-2 text-sm cursor-pointer py-1 hover:bg-gray-50 rounded px-1">
+                  <label key={test} className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] py-1.5 active:bg-gray-100 hover:bg-gray-50 rounded-lg px-2">
                     <input
                       type="checkbox"
                       checked={testTelephone.includes(test)}
                       onChange={() => toggleTest(test)}
-                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-violet focus:ring-violet"
+                      className="h-[18px] w-[18px] rounded border-gray-300 text-violet focus:ring-violet shrink-0"
                     />
                     <span className="leading-tight">{test}</span>
                   </label>
@@ -500,24 +500,24 @@ export function RepairForm({
             {/* Tiroir SIM */}
             <div>
               <Label className="mb-2 block">Tiroir SIM présent ? *</Label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50">
                   <input
                     type="radio"
                     name="tiroir-sim"
                     checked={tiroirSim === true}
                     onChange={() => setTiroirSim(true)}
-                    className="h-4 w-4 text-violet focus:ring-violet"
+                    className="h-[18px] w-[18px] text-violet focus:ring-violet"
                   />
                   Oui
                 </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50">
                   <input
                     type="radio"
                     name="tiroir-sim"
                     checked={tiroirSim === false}
                     onChange={() => setTiroirSim(false)}
-                    className="h-4 w-4 text-violet focus:ring-violet"
+                    className="h-[18px] w-[18px] text-violet focus:ring-violet"
                   />
                   Non
                 </label>
@@ -527,14 +527,14 @@ export function RepairForm({
             {/* Pièces à changer */}
             <div className={sav ? "opacity-50 pointer-events-none" : ""}>
               <Label className="mb-2 block">Pièces à changer {!sav && "*"} <span className="text-xs text-muted-foreground">({piecesAChanger.length} sélectionnée{piecesAChanger.length > 1 ? "s" : ""})</span></Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 border rounded-lg p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 border rounded-lg p-2 sm:p-3">
                 {PIECES_A_CHANGER.map((piece) => (
-                  <label key={piece} className="flex items-center gap-2 text-sm cursor-pointer py-1 hover:bg-gray-50 rounded px-1">
+                  <label key={piece} className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] py-1.5 active:bg-gray-100 hover:bg-gray-50 rounded-lg px-2">
                     <input
                       type="checkbox"
                       checked={piecesAChanger.includes(piece)}
                       onChange={() => togglePiece(piece)}
-                      className="h-4 w-4 rounded border-gray-300 text-violet focus:ring-violet"
+                      className="h-[18px] w-[18px] rounded border-gray-300 text-violet focus:ring-violet shrink-0"
                     />
                     {piece}
                   </label>
@@ -613,13 +613,13 @@ export function RepairForm({
             {/* Upsell batterie */}
             <div>
               <Label className="mb-2 block text-sm">On vous change la batterie ? Vous bénéficiez de 20% de remise sur celle-ci !</Label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="radio" name="upsell-bat" checked={upsellBatterie === true} onChange={() => setUpsellBatterie(true)} className="h-4 w-4 text-violet focus:ring-violet" />
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50">
+                  <input type="radio" name="upsell-bat" checked={upsellBatterie === true} onChange={() => setUpsellBatterie(true)} className="h-[18px] w-[18px] text-violet focus:ring-violet" />
                   Oui
                 </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="radio" name="upsell-bat" checked={upsellBatterie === false} onChange={() => setUpsellBatterie(false)} className="h-4 w-4 text-violet focus:ring-violet" />
+                <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50">
+                  <input type="radio" name="upsell-bat" checked={upsellBatterie === false} onChange={() => setUpsellBatterie(false)} className="h-[18px] w-[18px] text-violet focus:ring-violet" />
                   Non
                 </label>
               </div>
@@ -628,13 +628,13 @@ export function RepairForm({
             {/* Upsell protection */}
             <div>
               <Label className="mb-2 block text-sm">On vous met une protection d&apos;écran ? <span className="text-xs text-muted-foreground">(Si &quot;non&quot; on insiste pour le bien du client)</span></Label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="radio" name="upsell-prot" checked={upsellProtection === true} onChange={() => setUpsellProtection(true)} className="h-4 w-4 text-violet focus:ring-violet" />
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50">
+                  <input type="radio" name="upsell-prot" checked={upsellProtection === true} onChange={() => setUpsellProtection(true)} className="h-[18px] w-[18px] text-violet focus:ring-violet" />
                   Oui
                 </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="radio" name="upsell-prot" checked={upsellProtection === false} onChange={() => setUpsellProtection(false)} className="h-4 w-4 text-violet focus:ring-violet" />
+                <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50">
+                  <input type="radio" name="upsell-prot" checked={upsellProtection === false} onChange={() => setUpsellProtection(false)} className="h-[18px] w-[18px] text-violet focus:ring-violet" />
                   Non
                 </label>
               </div>
@@ -642,7 +642,7 @@ export function RepairForm({
 
             {/* SAV */}
             <div>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <label className="flex items-center gap-2.5 text-sm cursor-pointer min-h-[44px] px-3 rounded-lg border active:bg-gray-100 hover:bg-gray-50 w-fit">
                 <input
                   type="checkbox"
                   checked={sav}
@@ -650,7 +650,7 @@ export function RepairForm({
                     setSav(e.target.checked);
                     if (e.target.checked) setTarif(0);
                   }}
-                  className="h-4 w-4 rounded border-gray-300 text-violet focus:ring-violet"
+                  className="h-[18px] w-[18px] rounded border-gray-300 text-violet focus:ring-violet"
                 />
                 <span className="font-semibold">SAV (réparation sous garantie)</span>
               </label>
@@ -707,20 +707,41 @@ export function RepairForm({
             </div>
           </fieldset>
 
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-vert hover:bg-vert/90 text-white"
-          >
-            {submitting
-              ? compressing
-                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Compression photos…</>
-                : "Enregistrement..."
-              : mode === "create"
-                ? "Créer la prise en charge"
-                : "Enregistrer les modifications"
-            }
-          </Button>
+          {/* Desktop: inline button */}
+          <div className="hidden sm:block">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-vert hover:bg-vert/90 text-white h-11"
+            >
+              {submitting
+                ? compressing
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Compression photos…</>
+                  : "Enregistrement..."
+                : mode === "create"
+                  ? "Créer la prise en charge"
+                  : "Enregistrer les modifications"
+              }
+            </Button>
+          </div>
+
+          {/* Mobile: sticky bottom bar */}
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-20">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-vert hover:bg-vert/90 active:bg-vert-dark text-white h-12 text-base"
+            >
+              {submitting
+                ? compressing
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Compression…</>
+                  : "Enregistrement..."
+                : mode === "create"
+                  ? "Créer la prise en charge"
+                  : "Enregistrer"
+              }
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

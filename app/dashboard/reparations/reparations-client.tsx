@@ -11,6 +11,7 @@ import {
   Plus,
   Bell,
   BellOff,
+  Wrench,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -210,101 +211,103 @@ export function ReparationsClient({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-7xl mx-auto">
       {/* Header row */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold sm:text-2xl">Réparations</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold sm:text-2xl">Réparations</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {total} résultat{total > 1 ? "s" : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={toggleSound}
-            className="p-1.5 rounded-md text-muted-foreground hover:bg-gray-100 transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-gray-100 active:bg-gray-200 transition-colors"
             title={soundEnabled ? "Désactiver le son" : "Activer le son"}
           >
             {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
           </button>
-          <span className="text-sm text-muted-foreground">
-            {total} résultat{total > 1 ? "s" : ""}
-          </span>
           <button
             onClick={handleRefresh}
-            className="p-1.5 rounded-md text-muted-foreground hover:bg-gray-100 transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-gray-100 active:bg-gray-200 transition-colors"
             title="Actualiser"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
           <Button
-            size="sm"
-            className="bg-vert hover:bg-vert/90 text-white"
+            className="bg-vert hover:bg-vert/90 active:bg-vert-dark text-white h-10 px-3 sm:px-4"
             onClick={() => setShowNewDialog(true)}
           >
-            <Plus className="h-4 w-4 mr-1" />
+            <Plus className="h-4 w-4 sm:mr-1.5" />
             <span className="hidden sm:inline">Nouvelle prise en charge</span>
-            <span className="sm:hidden">Nouveau</span>
           </Button>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <form onSubmit={handleSearch} className="flex gap-2 flex-1 min-w-[200px]">
+        <form onSubmit={handleSearch} className="flex gap-2 flex-1 min-w-0 sm:min-w-[200px]">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Ticket, nom, email ou téléphone…"
+              placeholder="Ticket, nom, email, tél…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-10"
             />
           </div>
-          <Button type="submit" variant="secondary" size="sm">
-            Chercher
+          <Button type="submit" variant="secondary" className="h-10 px-3">
+            OK
           </Button>
         </form>
 
-        <Select
-          value={currentFilters.statut ?? "all"}
-          onValueChange={(v) => updateFilter("statut", v)}
-        >
-          <SelectTrigger className="w-full sm:w-[160px]">
-            <SelectValue placeholder="Statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
-            {ALL_STATUTS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {getStatusLabel(s)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {isAdmin && (
+        <div className="flex gap-2">
           <Select
-            value={currentFilters.magasin ?? "all"}
-            onValueChange={(v) => updateFilter("magasin", v)}
+            value={currentFilters.statut ?? "all"}
+            onValueChange={(v) => updateFilter("statut", v)}
           >
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Magasin" />
+            <SelectTrigger className="w-full sm:w-[160px] h-10">
+              <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les magasins</SelectItem>
-              {magasins.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.nom} ({m.ville})
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {ALL_STATUTS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {getStatusLabel(s)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        )}
+
+          {isAdmin && (
+            <Select
+              value={currentFilters.magasin ?? "all"}
+              onValueChange={(v) => updateFilter("magasin", v)}
+            >
+              <SelectTrigger className="w-full sm:w-[200px] h-10">
+                <SelectValue placeholder="Magasin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les magasins</SelectItem>
+                {magasins.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.nom} ({m.ville})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border bg-white">
+      {/* Desktop table (hidden on mobile) */}
+      <div className="hidden sm:block rounded-lg border bg-white">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Ticket</TableHead>
-              <TableHead className="hidden sm:table-cell">Client</TableHead>
+              <TableHead>Client</TableHead>
               <TableHead className="hidden md:table-cell">Modèle</TableHead>
               <TableHead className="hidden lg:table-cell">Magasin</TableHead>
               <TableHead>Date</TableHead>
@@ -314,7 +317,8 @@ export function ReparationsClient({
           <TableBody>
             {reparations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <Wrench className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   Aucune réparation trouvée
                 </TableCell>
               </TableRow>
@@ -322,13 +326,13 @@ export function ReparationsClient({
               reparations.map((r) => (
                 <TableRow
                   key={r.id}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-gray-50"
                   onClick={() => router.push(`/dashboard/reparations/${r.id}`)}
                 >
                   <TableCell>
                     <TicketDisplay ticket={r.ticket_number} size="sm" />
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell>
                     <div className="font-medium">{r.prenom} {r.nom}</div>
                     <div className="text-xs text-muted-foreground">
                       {r.email || r.telephone}
@@ -374,17 +378,66 @@ export function ReparationsClient({
         </Table>
       </div>
 
+      {/* Mobile cards (visible on small screens only) */}
+      <div className="sm:hidden space-y-2">
+        {reparations.length === 0 ? (
+          <div className="rounded-xl border bg-white p-8 text-center">
+            <Wrench className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+            <p className="text-muted-foreground font-medium">Aucune réparation trouvée</p>
+            <p className="text-xs text-muted-foreground mt-1">Modifiez vos filtres ou créez une prise en charge</p>
+          </div>
+        ) : (
+          reparations.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => router.push(`/dashboard/reparations/${r.id}`)}
+              className="w-full text-left rounded-xl border bg-white p-4 active:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TicketDisplay ticket={r.ticket_number} size="sm" />
+                  </div>
+                  <p className="font-semibold text-[15px] truncate">{r.prenom} {r.nom}</p>
+                  <p className="text-sm text-muted-foreground truncate">{r.modele}</p>
+                  {r.magasins?.nom && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{r.magasins.nom}</p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1.5">
+                    {r.rdv_date
+                      ? format(new Date(r.rdv_date), "dd MMM", { locale: fr })
+                      : format(new Date(r.created_at), "dd MMM", { locale: fr })}
+                    {r.rdv_heure && ` ${r.rdv_heure.slice(0, 5)}`}
+                  </div>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <StatusSelector
+                      reparationId={r.id}
+                      currentStatut={r.statut}
+                      userEmail={userEmail}
+                      variant="badge"
+                      onStatusChange={() => router.refresh()}
+                    />
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-1">
           <p className="text-sm text-muted-foreground">
             Page {page} / {totalPages}
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => goToPage(page - 1)}>
+            <Button variant="outline" className="h-10 w-10 p-0" disabled={page <= 1} onClick={() => goToPage(page - 1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>
+            <Button variant="outline" className="h-10 w-10 p-0" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
